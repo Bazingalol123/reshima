@@ -374,7 +374,7 @@ button.icon-btn {
   position: relative;
 }
 .checkbox-wrap input:checked + .check-ui::after {
-  content: '✓';
+  content: 'âœ“';
   color: white;
   font-weight: 900;
   position: absolute;
@@ -519,4 +519,31 @@ dialog::backdrop {
   .wide-btn {
     width: 100%;
   }
+}
+
+
+.with-bottom-nav{padding-bottom:100px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.bottom-nav{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);width:min(calc(100% - 20px),760px);display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:10px;z-index:30}
+.nav-btn{background:rgba(255,255,255,.8);color:#32435c;border:1px solid rgba(15,23,42,.08);padding:12px 10px;font-weight:800}
+.nav-btn.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;box-shadow:0 12px 24px rgba(37,99,235,.18)}
+.single-col{grid-template-columns:1fr}
+.inline-statuses{display:flex;gap:8px;flex-wrap:wrap}
+.sync-explainer,.tips-list{display:grid;gap:12px}
+.sync-line,.tip-card{padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.6);border:1px solid rgba(15,23,42,.07)}
+.tip-card{display:grid;gap:6px}
+.section-stack{display:grid;gap:10px}
+.compact-actions{align-items:center}
+@media (max-width: 900px){
+  .hero,.top-grid{grid-template-columns:1fr}
+}
+@media (max-width: 680px){
+  .app-shell{width:min(calc(100% - 14px),var(--max));margin:12px auto 40px}
+  .hero,.settings-card,.add-card,.filters-card,.list-card{padding:16px}
+  .hero h1{font-size:2rem}
+  .bottom-nav{bottom:10px;width:calc(100% - 12px);border-radius:22px}
+  .nav-btn{padding:13px 8px;font-size:.92rem}
+  .item-card{grid-template-columns:auto 1fr;gap:10px}
+  .item-actions{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr}
 }
