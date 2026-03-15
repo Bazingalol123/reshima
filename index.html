@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>רשימת קניות משותפת</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-bg"></div>
+  <main class="app-shell">
+    <header class="hero card glass">
+      <div class="hero-copy">
+        <span class="eyebrow">Shared Shopping • Google Sheets</span>
+        <h1>רשימת קניות משותפת</h1>
+        <p>ניהול רשימה אחת, יפה, מהיר ונוח — לך ולבת הזוג. מבוסס Google Sheets + Apps Script + GitHub Pages, בלי לחשוף מפתחות בקוד.</p>
+        <div class="hero-pills">
+          <span class="pill">שיתוף חי</span>
+          <span class="pill">מובייל מעולה</span>
+          <span class="pill">ללא backend פרטי</span>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="metric-card">
+          <span class="metric-label">פריטים</span>
+          <strong id="metricTotal">0</strong>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">נקנו</span>
+          <strong id="metricDone">0</strong>
+        </div>
+        <div class="metric-card accent-card">
+          <span class="metric-label">נותרו</span>
+          <strong id="metricLeft">0</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="top-grid">
+      <section class="card glass settings-card">
+        <div class="section-head">
+          <div>
+            <h2>חיבור למערכת</h2>
+            <p class="muted">ההגדרות נשמרות רק בדפדפן שלך.</p>
+          </div>
+          <span class="status-chip" id="connectionChip">לא מחובר</span>
+        </div>
+
+        <label class="field">
+          <span>URL של Apps Script Web App</span>
+          <input id="apiUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" />
+        </label>
+
+        <label class="field">
+          <span>סיסמה משותפת</span>
+          <div class="password-wrap">
+            <input id="sharedSecret" type="password" placeholder="לא נשמרת בקוד" />
+            <button type="button" class="icon-btn" id="toggleSecretBtn" aria-label="הצג או הסתר סיסמה">👁</button>
+          </div>
+        </label>
+
+        <div class="action-row wrap">
+          <button id="saveSettingsBtn">שמור הגדרות</button>
+          <button id="testConnectionBtn" class="secondary">בדיקת חיבור</button>
+          <button id="refreshBtn" class="ghost">רענן</button>
+        </div>
+      </section>
+
+      <section class="card glass add-card">
+        <div class="section-head compact">
+          <div>
+            <h2>הוסף פריט חדש</h2>
+            <p class="muted">הוספה מהירה, מסודרת ונוחה מהטלפון.</p>
+          </div>
+        </div>
+
+        <form id="addItemForm" class="grid-form">
+          <label class="field field-span-2">
+            <span>שם פריט</span>
+            <input id="nameInput" name="name" required maxlength="120" placeholder="למשל: פיתות כוסמין מלא" />
+          </label>
+          <label class="field">
+            <span>כמות</span>
+            <input id="quantityInput" name="quantity" required maxlength="40" placeholder="1 / 0.5 ק״ג / 2 יח׳" />
+          </label>
+          <label class="field">
+            <span>קטגוריה</span>
+            <input id="categoryInput" name="category" maxlength="60" placeholder="ירקות / חלבון / ניקיון" />
+          </label>
+          <label class="field field-span-2">
+            <span>הערה</span>
+            <input id="notesInput" name="notes" maxlength="160" placeholder="אופציונלי — למשל: רק אם יש מבצע" />
+          </label>
+          <div class="form-actions field-span-2">
+            <button type="submit" class="wide-btn">הוסף לרשימה</button>
+          </div>
+        </form>
+      </section>
+    </section>
+
+    <section class="card glass filters-card">
+      <div class="section-head compact">
+        <div>
+          <h2>חיפוש וסינון</h2>
+          <p class="muted">מצא מהר מה חסר ומה כבר סומן.</p>
+        </div>
+        <div id="stats" class="stats-inline muted"></div>
+      </div>
+
+      <div class="toolbar-grid">
+        <label class="field toolbar-search">
+          <span>חיפוש</span>
+          <input id="searchInput" type="search" placeholder="חפש פריט, קטגוריה או הערה..." />
+        </label>
+        <label class="field">
+          <span>סטטוס</span>
+          <select id="statusFilter">
+            <option value="all">הכול</option>
+            <option value="active">לא נקנה</option>
+            <option value="done">נקנה</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>מיון</span>
+          <select id="sortSelect">
+            <option value="created_desc">חדש לישן</option>
+            <option value="created_asc">ישן לחדש</option>
+            <option value="category_asc">קטגוריה א-ת</option>
+            <option value="name_asc">שם א-ת</option>
+          </select>
+        </label>
+        <label class="field auto-refresh-field">
+          <span>רענון אוטומטי</span>
+          <select id="autoRefreshSelect">
+            <option value="0">כבוי</option>
+            <option value="15">כל 15 שנ׳</option>
+            <option value="30">כל 30 שנ׳</option>
+            <option value="60">כל דקה</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="card glass list-card">
+      <div id="statusMessage" class="status-message hidden"></div>
+      <div id="loading" class="loading">טוען נתונים...</div>
+      <ul id="itemsList" class="items-list"></ul>
+
+      <template id="itemTemplate">
+        <li class="item-card">
+          <div class="item-main">
+            <label class="checkbox-wrap" aria-label="סמן פריט כנקנה">
+              <input type="checkbox" class="toggle-item" />
+              <span class="check-ui"></span>
+            </label>
+            <div class="item-texts">
+              <div class="item-top-row">
+                <strong class="item-name"></strong>
+                <span class="badge item-category"></span>
+              </div>
+              <div class="item-meta-row">
+                <span class="meta-pill item-quantity"></span>
+                <span class="meta-pill subtle item-notes"></span>
+              </div>
+              <div class="item-date muted small"></div>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="secondary edit-btn" type="button">עריכה</button>
+            <button class="danger delete-btn" type="button">מחק</button>
+          </div>
+        </li>
+      </template>
+    </section>
+  </main>
+
+  <dialog id="editDialog">
+    <form method="dialog" id="editItemForm" class="dialog-form">
+      <div class="section-head compact">
+        <div>
+          <h3>עריכת פריט</h3>
+          <p class="muted">עדכון מהיר ישירות מול ה־Sheet</p>
+        </div>
+      </div>
+      <input type="hidden" id="editRowId" />
+      <label class="field">
+        <span>שם פריט</span>
+        <input id="editName" required maxlength="120" />
+      </label>
+      <label class="field">
+        <span>כמות</span>
+        <input id="editQuantity" required maxlength="40" />
+      </label>
+      <label class="field">
+        <span>קטגוריה</span>
+        <input id="editCategory" maxlength="60" />
+      </label>
+      <label class="field">
+        <span>הערה</span>
+        <input id="editNotes" maxlength="160" />
+      </label>
+      <div class="action-row end">
+        <button type="button" id="cancelEditBtn" class="ghost">ביטול</button>
+        <button type="submit">שמור שינויים</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
