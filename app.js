@@ -20,8 +20,11 @@ const els = {
   toggleSecretBtn: document.getElementById('toggleSecretBtn'),
   saveSettingsBtn: document.getElementById('saveSettingsBtn'),
   testConnectionBtn: document.getElementById('testConnectionBtn'),
-  refreshBtn: document.getElementById('refreshBtn'),
   addItemForm: document.getElementById('addItemForm'),
+  addDialog: document.getElementById('addDialog'),
+  openAddDialogBtn: document.getElementById('openAddDialogBtn'),
+  openAddDialogBtnTab: document.getElementById('openAddDialogBtnTab'),
+  closeAddDialogBtn: document.getElementById('closeAddDialogBtn'),
   searchInput: document.getElementById('searchInput'),
   statusFilter: document.getElementById('statusFilter'),
   sortSelect: document.getElementById('sortSelect'),
@@ -313,9 +316,14 @@ function bindEvents() {
     showMessage('ההגדרות נשמרו בדפדפן שלך.');
   });
   els.testConnectionBtn.addEventListener('click', async () => { setConfig(els.apiUrl.value, els.sharedSecret.value, els.autoRefreshSelect.value); setAutoRefresh(els.autoRefreshSelect.value); await loadItems(true); });
-  els.refreshBtn.addEventListener('click', async () => loadItems(true));
   els.autoRefreshSelect.addEventListener('change', () => { setConfig(els.apiUrl.value, els.sharedSecret.value, els.autoRefreshSelect.value); setAutoRefresh(els.autoRefreshSelect.value); });
-  els.addItemForm.addEventListener('submit', addItem);
+  els.addItemForm.addEventListener('submit', async (e) => {
+    await addItem(e);
+    if (els.addDialog && typeof els.addDialog.close === 'function') els.addDialog.close();
+  });
+  if (els.openAddDialogBtn) els.openAddDialogBtn.addEventListener('click', () => els.addDialog?.showModal());
+  if (els.openAddDialogBtnTab) els.openAddDialogBtnTab.addEventListener('click', () => els.addDialog?.showModal());
+  if (els.closeAddDialogBtn) els.closeAddDialogBtn.addEventListener('click', () => els.addDialog?.close());
   els.searchInput.addEventListener('input', e => { state.filters.search = e.target.value; renderItems(); });
   els.statusFilter.addEventListener('change', e => { state.filters.status = e.target.value; renderItems(); });
   els.sortSelect.addEventListener('change', e => { state.filters.sort = e.target.value; renderItems(); });
