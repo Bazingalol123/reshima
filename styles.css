@@ -238,7 +238,7 @@ button:active { transform: scale(0.98); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 button:not(.secondary):not(.ghost):not(.danger):not(.icon-btn):not(.small-btn):not(.nav-btn) {
-  color: white;
+  color: black;
   background: var(--primary);
 }
 
@@ -703,7 +703,7 @@ dialog::backdrop {
   margin-top: 20px;
   padding: 12px;
   background: var(--primary);
-  color: white;
+  color: black;
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
