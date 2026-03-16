@@ -2,7 +2,7 @@
   "name": "רשימת קניות משותפת",
   "short_name": "רשימת קניות",
   "description": "רשימת קניות משותפת עם סנכרון בזמן אמת",
-  "start_url": "/reshima/",
+  "start_url": "/reshima/?v=4",
   "scope": "/reshima/",
   "display": "standalone",
   "background_color": "#fafbfc",
