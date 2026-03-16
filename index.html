@@ -13,38 +13,31 @@
 <body>
   <div class="page-bg"></div>
   <main class="app-shell with-bottom-nav">
-    <header class="hero card glass">
+    <header class="hero">
       <div class="hero-copy">
-        <span class="eyebrow">Shared Shopping • Google Sheets</span>
         <h1>רשימת קניות משותפת</h1>
-        <p>מהיר, יפה, נוח לזוג, ועם סנכרון חכם יותר: עדכון מיידי אחרי פעולה, ובדיקות שינוי קלות במקום רענון כבד כל כמה שניות.</p>
-        <div class="hero-pills">
-          <span class="pill">Google Sheets</span>
-          <span class="pill">GitHub Pages</span>
-          <span class="pill">Mobile First</span>
-        </div>
       </div>
       <div class="hero-stats">
         <div class="metric-card">
-          <span class="metric-label">פריטים</span>
           <strong id="metricTotal">0</strong>
+          <span class="metric-label">כל</span>
         </div>
         <div class="metric-card">
-          <span class="metric-label">נקנו</span>
           <strong id="metricDone">0</strong>
+          <span class="metric-label">קנו</span>
         </div>
         <div class="metric-card accent-card">
-          <span class="metric-label">נותרו</span>
           <strong id="metricLeft">0</strong>
+          <span class="metric-label">נותר</span>
         </div>
       </div>
     </header>
 
     <section class="tab-panel active" data-tab="list">
-      <section class="card glass filters-card section-stack">
+      <section class="card glass filters-card">
         <div class="section-head compact">
           <div>
-            <h3>חיפוש וסינון</h3>
+            <h3>רשימה</h3>
             <p class="muted" id="stats">עדיין לא נטען.</p>
           </div>
           <div class="inline-statuses">
@@ -53,85 +46,79 @@
           </div>
         </div>
 
-        <div class="filters-grid">
-          <label class="field compact-field">
-            <span>חיפוש</span>
-            <input id="searchInput" type="search" placeholder="חפש פריט, כמות, קטגוריה..." />
-          </label>
-
-          <label class="field compact-field">
-            <span>סטטוס</span>
-            <select id="statusFilter">
-              <option value="all">הכול</option>
-              <option value="active">רק מה שנשאר</option>
-              <option value="done">רק מה שנקנה</option>
-            </select>
-          </label>
-
-          <label class="field compact-field">
-            <span>מיון</span>
-            <select id="sortSelect">
-              <option value="created_desc">החדש ביותר</option>
-              <option value="created_asc">הישן ביותר</option>
-              <option value="name_asc">לפי שם</option>
-              <option value="category_asc">לפי קטגוריה</option>
-            </select>
-          </label>
+        <div class="filters-inline">
+          <input id="searchInput" type="search" placeholder="חיפוש..." />
+          <select id="statusFilter">
+            <option value="all">הכול</option>
+            <option value="active">פעיל</option>
+            <option value="done">קנה</option>
+          </select>
+          <select id="sortSelect">
+            <option value="created_desc">חדש</option>
+            <option value="created_asc">ישן</option>
+            <option value="name_asc">שם</option>
+            <option value="category_asc">קטגוריה</option>
+          </select>
         </div>
       </section>
 
-      <section class="card glass list-card section-stack">
-        <div class="section-head compact">
-          <div>
-            <h3>הרשימה</h3>
-            <p class="muted">סמן, ערוך או מחק. אחרי כל פעולה המסך שלך מתעדכן מיידית.</p>
-          </div>
-          <div class="action-row compact-actions wrap">
-            <button id="refreshBtn" class="ghost">רענן עכשיו</button>
-          </div>
-        </div>
-
+      <section class="card glass list-card">
         <div id="loading" class="loading">טוען רשימה...</div>
         <ul id="itemsList" class="items-list"></ul>
       </section>
     </section>
 
+    <button id="openAddDialogBtn" class="fab" type="button" aria-label="הוסף פריט">＋</button>
+
+    <dialog id="addDialog" class="add-dialog">
+      <form id="addItemForm" class="dialog-card" method="dialog">
+        <div class="section-head compact">
+          <div>
+            <h3>הוסף פריט</h3>
+            <p class="muted">הפריט יתווסף מייד ל־Google Sheet.</p>
+          </div>
+        </div>
+
+        <label class="field">
+          <span>שם פריט</span>
+          <input name="name" required placeholder="למשל: עגבניות, חלב, פיתות..." />
+        </label>
+
+        <div class="form-grid two-col">
+          <label class="field">
+            <span>כמות</span>
+            <input name="quantity" required placeholder="למשל: 2 יח׳ / 1 ק״ג" />
+          </label>
+
+          <label class="field">
+            <span>קטגוריה</span>
+            <input name="category" placeholder="ירקות / חלבון / ניקיון..." />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>הערות</span>
+          <input name="notes" placeholder="כל הערה נוספת" />
+        </label>
+
+        <div class="action-row wrap">
+          <button type="submit">הוסף לרשימה</button>
+          <button type="button" id="closeAddDialogBtn" class="ghost">ביטול</button>
+        </div>
+      </form>
+    </dialog>
+
     <section class="tab-panel" data-tab="add">
       <section class="card glass add-card section-stack">
         <div class="section-head compact">
           <div>
-            <h3>הוספת פריט חדש</h3>
-            <p class="muted">מוסיף ישירות ל־Google Sheet המשותף.</p>
+            <h3>הוספת פריט</h3>
+            <p class="muted">השתמש בכפתור כדי לפתוח את טופס הוספה.</p>
           </div>
         </div>
-
-        <form id="addItemForm" class="add-form">
-          <label class="field">
-            <span>שם פריט</span>
-            <input name="name" required placeholder="למשל: עגבניות, חלב, פיתות..." />
-          </label>
-
-          <div class="form-grid two-col">
-            <label class="field">
-              <span>כמות</span>
-              <input name="quantity" required placeholder="למשל: 2 יח׳ / 1 ק״ג" />
-            </label>
-
-            <label class="field">
-              <span>קטגוריה</span>
-              <input name="category" placeholder="ירקות / חלבון / ניקיון..." />
-            </label>
-          </div>
-
-          <label class="field">
-            <span>הערות</span>
-            <input name="notes" placeholder="כל הערה נוספת" />
-          </label>
-
-          <div class="action-row">
-            <button type="submit">הוסף לרשימה</button>
-          </div>
-        </form>
+        <div class="action-row">
+          <button id="openAddDialogBtnTab" type="button">הוסף פריט</button>
+        </div>
       </section>
     </section>
 
@@ -223,19 +210,23 @@
         <span class="check-ui"></span>
       </label>
       <div class="item-main">
-        <div class="item-topline">
-          <h4 class="item-name"></h4>
-          <span class="item-category"></span>
+        <div class="item-texts">
+          <div>
+            <div class="item-top-row">
+              <h4 class="item-name"></h4>
+              <span class="item-category"></span>
+            </div>
+            <div class="item-meta-row">
+              <span class="item-quantity meta-pill"></span>
+              <span class="item-date meta-pill subtle"></span>
+            </div>
+            <p class="item-notes"></p>
+          </div>
         </div>
-        <div class="item-meta-row">
-          <span class="item-quantity"></span>
-          <span class="item-date"></span>
-        </div>
-        <p class="item-notes"></p>
       </div>
       <div class="item-actions">
-        <button class="ghost small-btn edit-btn" type="button">ערוך</button>
-        <button class="danger small-btn delete-btn" type="button">מחק</button>
+        <button class="ghost small-btn edit-btn" type="button" title="ערוך">✎</button>
+        <button class="danger small-btn delete-btn" type="button" title="מחק">🗑</button>
       </div>
     </li>
   </template>
