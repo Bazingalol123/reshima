@@ -1,9 +1,9 @@
-const CACHE_NAME = 'shopping-list-v1';
+const CACHE_NAME = 'shopping-list-v4';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/styles.css',
-  '/app.js',
+  '/styles.css?v=4',
+  '/app.js?v=4',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
