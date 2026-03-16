@@ -11,7 +11,9 @@ const state = {
   lastLoadedAt: null,
   remoteVersion: '',
   syncing: false,
-  activeTab: 'list'
+  activeTab: 'list',
+  lists: [],
+  currentListId: null
 };
 
 const els = {
@@ -42,6 +44,8 @@ const els = {
   editQuantity: document.getElementById('editQuantity'),
   editCategory: document.getElementById('editCategory'),
   editNotes: document.getElementById('editNotes'),
+  editPrice: document.getElementById('editPrice'),
+  editImage: document.getElementById('editImage'),
   metricTotal: document.getElementById('metricTotal'),
   metricDone: document.getElementById('metricDone'),
   metricLeft: document.getElementById('metricLeft'),
@@ -49,7 +53,15 @@ const els = {
   connectionChipMirror: document.getElementById('connectionChipMirror'),
   syncChip: document.getElementById('syncChip'),
   navBtns: [...document.querySelectorAll('.nav-btn')],
-  tabPanels: [...document.querySelectorAll('.tab-panel')]
+  tabPanels: [...document.querySelectorAll('.tab-panel')],
+  hamburgerBtn: document.getElementById('hamburgerBtn'),
+  sidemenu: document.getElementById('sidemenu'),
+  closeSidemenuBtn: document.getElementById('closeSidemenuBtn'),
+  listsList: document.getElementById('listsList'),
+  addListBtn: document.getElementById('addListBtn'),
+  searchProductBtn: document.getElementById('searchProductBtn'),
+  currentListName: document.getElementById('currentListName'),
+  currentListName: document.getElementById('currentListName')
 };
 
 function getConfig() {
@@ -131,7 +143,8 @@ async function handleResponse(response) {
 function normalizeItem(item) {
   return {
     rowId: String(item.rowId), name: item.name || '', quantity: item.quantity || '',
-    category: item.category || '', notes: item.notes || '',
+    category: item.category || '', notes: item.notes || '', price: item.price || '',
+    image: item.image || '',
     purchased: String(item.purchased).toLowerCase() === 'true',
     createdAt: item.createdAt || '', updatedAt: item.updatedAt || ''
   };
@@ -172,6 +185,20 @@ function renderItems() {
     checkbox.addEventListener('change', () => toggleItem(item.rowId, checkbox.checked));
     node.querySelector('.item-name').textContent = item.name;
     node.querySelector('.item-quantity').textContent = `כמות: ${item.quantity || '-'}`;
+    const priceEl = node.querySelector('.item-price');
+    if (item.price) {
+      priceEl.textContent = `₪${item.price}`;
+      priceEl.style.display = 'inline-flex';
+    } else {
+      priceEl.style.display = 'none';
+    }
+    const imageEl = node.querySelector('.item-image');
+    if (item.image) {
+      imageEl.src = item.image;
+      imageEl.style.display = 'block';
+    } else {
+      imageEl.style.display = 'none';
+    }
     const notesEl = node.querySelector('.item-notes');
     if (item.notes) notesEl.textContent = item.notes; else notesEl.remove();
     const categoryEl = node.querySelector('.item-category');
@@ -200,7 +227,7 @@ function formatTimeOnly(value) {
 async function loadItems(showSuccess = false, {silent=false} = {}) {
   if (!silent) els.loading.classList.remove('hidden');
   try {
-    const data = await callApi('list', {}, 'GET');
+    const data = await callApi('list', { listId: state.currentListId }, 'GET');
     state.items = (data.items || []).map(normalizeItem);
     state.remoteVersion = data.version || state.remoteVersion;
     state.lastLoadedAt = new Date().toISOString();
@@ -242,7 +269,15 @@ function optimisticSet(rowId, patch) {
 async function addItem(event) {
   event.preventDefault();
   const form = new FormData(els.addItemForm);
-  const payload = { name: form.get('name'), quantity: form.get('quantity'), category: form.get('category'), notes: form.get('notes') };
+  const payload = { 
+    listId: state.currentListId,
+    name: form.get('name'), 
+    quantity: form.get('quantity'), 
+    category: form.get('category'), 
+    notes: form.get('notes'),
+    price: form.get('price'),
+    image: form.get('image')
+  };
   try {
     setSyncChip('מוסיף...', 'disconnected');
     await callApi('add', payload);
@@ -265,11 +300,26 @@ async function toggleItem(rowId, purchased) {
   }
 }
 function openEditDialog(item) {
-  els.editRowId.value = item.rowId; els.editName.value = item.name; els.editQuantity.value = item.quantity; els.editCategory.value = item.category; els.editNotes.value = item.notes; els.editDialog.showModal();
+  els.editRowId.value = item.rowId; 
+  els.editName.value = item.name; 
+  els.editQuantity.value = item.quantity; 
+  els.editCategory.value = item.category; 
+  els.editNotes.value = item.notes; 
+  els.editPrice.value = item.price;
+  els.editImage.value = item.image;
+  els.editDialog.showModal();
 }
 async function saveEditedItem(event) {
   event.preventDefault();
-  const patch = { rowId: els.editRowId.value, name: els.editName.value, quantity: els.editQuantity.value, category: els.editCategory.value, notes: els.editNotes.value };
+  const patch = { 
+    rowId: els.editRowId.value, 
+    name: els.editName.value, 
+    quantity: els.editQuantity.value, 
+    category: els.editCategory.value, 
+    notes: els.editNotes.value,
+    price: els.editPrice.value,
+    image: els.editImage.value
+  };
   const prev = state.items.find(i=>i.rowId===patch.rowId);
   optimisticSet(patch.rowId, patch);
   try {
@@ -307,6 +357,72 @@ function switchTab(tab) {
   els.navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.targetTab === tab));
   els.tabPanels.forEach(panel => panel.classList.toggle('active', panel.dataset.tab === tab));
 }
+
+async function loadLists() {
+  try {
+    const data = await callApi('getLists', {}, 'GET');
+    state.lists = data.lists || [];
+    if (!state.lists.length) {
+      // Create default list
+      await createList({ name: 'רשימת קניות' });
+      await loadLists();
+    }
+    if (!state.currentListId && state.lists.length) {
+      state.currentListId = state.lists[0].id;
+    }
+    renderLists();
+  } catch (error) {
+    showMessage('שגיאה בטעינת רשימות: ' + error.message, true);
+  }
+}
+
+function renderLists() {
+  els.listsList.innerHTML = '';
+  state.lists.forEach(list => {
+    const li = document.createElement('li');
+    li.textContent = list.name;
+    li.dataset.listId = list.id;
+    if (list.id == state.currentListId) li.classList.add('active');
+    li.addEventListener('click', () => switchList(list.id));
+    els.listsList.appendChild(li);
+  });
+  const currentList = state.lists.find(l => l.id == state.currentListId);
+  els.currentListName.textContent = currentList ? currentList.name : '';
+}
+
+async function switchList(listId) {
+  state.currentListId = listId;
+  renderLists();
+  await loadItems();
+}
+
+async function createList(payload) {
+  try {
+    const data = await callApi('createList', payload);
+    await loadLists();
+    showMessage('רשימה נוצרה.');
+  } catch (error) {
+    showMessage(error.message, true);
+  }
+}
+
+function toggleSidemenu() {
+  els.sidemenu.classList.toggle('open');
+}
+
+async function fetchProductData(name) {
+  try {
+    const response = await fetch(`https://api.shufersal.co.il/v1/products?q=${encodeURIComponent(name)}`);
+    const data = await response.json();
+    if (data.products && data.products.length) {
+      const product = data.products[0];
+      return { price: product.price, image: product.image };
+    }
+  } catch (error) {
+    console.log('Error fetching product data:', error);
+  }
+  return null;
+}
 function bindEvents() {
   els.toggleSecretBtn.addEventListener('click', () => { els.sharedSecret.type = els.sharedSecret.type === 'password' ? 'text' : 'password'; });
   els.saveSettingsBtn.addEventListener('click', () => {
@@ -315,8 +431,16 @@ function bindEvents() {
     setAutoRefresh(els.autoRefreshSelect.value);
     showMessage('ההגדרות נשמרו בדפדפן שלך.');
   });
-  els.testConnectionBtn.addEventListener('click', async () => { setConfig(els.apiUrl.value, els.sharedSecret.value, els.autoRefreshSelect.value); setAutoRefresh(els.autoRefreshSelect.value); await loadItems(true); });
-  els.autoRefreshSelect.addEventListener('change', () => { setConfig(els.apiUrl.value, els.sharedSecret.value, els.autoRefreshSelect.value); setAutoRefresh(els.autoRefreshSelect.value); });
+  els.testConnectionBtn.addEventListener('click', async () => { 
+    setConfig(els.apiUrl.value, els.sharedSecret.value, els.autoRefreshSelect.value); 
+    setAutoRefresh(els.autoRefreshSelect.value); 
+    await loadLists();
+    await loadItems(true); 
+  });
+  els.autoRefreshSelect.addEventListener('change', () => { 
+    setConfig(els.apiUrl.value, els.sharedSecret.value, els.autoRefreshSelect.value); 
+    setAutoRefresh(els.autoRefreshSelect.value); 
+  });
   els.addItemForm.addEventListener('submit', async (e) => {
     await addItem(e);
     if (els.addDialog && typeof els.addDialog.close === 'function') els.addDialog.close();
@@ -331,16 +455,48 @@ function bindEvents() {
   els.cancelEditBtn.addEventListener('click', () => els.editDialog.close());
   els.navBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.targetTab)));
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkVersionAndSync(); });
+  // New events
+  els.hamburgerBtn.addEventListener('click', toggleSidemenu);
+  els.closeSidemenuBtn.addEventListener('click', toggleSidemenu);
+  els.addListBtn.addEventListener('click', () => {
+    const name = prompt('שם הרשימה החדשה:');
+    if (name) createList({ name });
+  });
+  els.searchProductBtn.addEventListener('click', async () => {
+    const name = els.addItemForm.querySelector('[name="name"]').value;
+    if (!name) return;
+    const data = await fetchProductData(name);
+    if (data) {
+      els.addItemForm.querySelector('[name="price"]').value = data.price;
+      els.addItemForm.querySelector('[name="image"]').value = data.image;
+      showMessage('נתונים נטענו מרמי לוי.');
+    } else {
+      showMessage('לא נמצאו נתונים.', true);
+    }
+  });
 }
 function boot() {
   hydrateSettings(); bindEvents(); switchTab('list'); setAutoRefresh(getConfig().autoRefresh || '5');
-  if (getConfig().apiUrl) loadItems(); else { els.loading.classList.add('hidden'); showMessage('הכנס URL של Apps Script ולחץ על בדיקת חיבור כדי להתחיל.'); }
+  if (getConfig().apiUrl) {
+    loadLists().then(() => loadItems());
+  } else { 
+    els.loading.classList.add('hidden'); 
+    showMessage('הכנס URL של Apps Script ולחץ על בדיקת חיבור כדי להתחיל.'); 
+  }
 }
 
 // Register service worker for PWA functionality
 if ('serviceWorker' in navigator) {
+  // Unregister all old service workers first
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    registrations.forEach(registration => {
+      registration.unregister();
+    });
+  });
+  
+  // Then register the new one
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('/sw.js?v=3')
       .then(registration => {
         console.log('Service Worker registered successfully:', registration.scope);
       })
