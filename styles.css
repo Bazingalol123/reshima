@@ -238,8 +238,8 @@ button:active { transform: scale(0.98); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 button:not(.secondary):not(.ghost):not(.danger):not(.icon-btn):not(.small-btn):not(.nav-btn) {
-  color: white;
-  background: var(--primary);
+  color: black;
+  background: white;
 }
 
 button:not(.secondary):not(.ghost):not(.danger):not(.icon-btn):not(.small-btn):not(.nav-btn):hover {
