@@ -6,8 +6,8 @@
   --text: #1a202c;
   --muted: #718096;
   --line: #e2e8f0;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
+  --primary: #ffffff;
+  --primary-hover: ##718096;
   --primary-soft: #eaf1ff;
   --success: #059669;
   --success-soft: #ecfdf5;
@@ -621,3 +621,107 @@ dialog::backdrop {
 /* Add item modal */
 .add-dialog .dialog-card { padding: 22px; }
 .add-dialog { width: min(94vw, 520px); }
+
+/* Hamburger menu */
+.hamburger-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 12px;
+}
+.hamburger-btn span {
+  width: 100%;
+  height: 2px;
+  background: var(--text);
+  border-radius: 1px;
+  transition: all 0.3s;
+}
+
+/* Sidemenu */
+.sidemenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  transform: translateX(-100%);
+  transition: transform 0.3s;
+  z-index: 50;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+.sidemenu.open {
+  transform: translateX(0);
+}
+.sidemenu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.sidemenu-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--muted);
+}
+.lists-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+}
+.lists-list li {
+  padding: 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.lists-list li:hover {
+  background: var(--bg-2);
+}
+.lists-list li.active {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.add-list-btn {
+  margin-top: 20px;
+  padding: 12px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.add-list-btn:hover {
+  background: var(--primary-hover);
+}
+
+/* Item image and price */
+.item-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+.item-price {
+  background: var(--success-soft);
+  color: var(--success);
+}
